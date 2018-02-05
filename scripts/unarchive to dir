@@ -1,0 +1,6 @@
+#!/bin/bash
+# Unarchive selected archives
+dir_script="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source "$dir_script/func-unarchive.sh"
+
+unarchive
