@@ -6,6 +6,10 @@
 dir_script="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$dir_script/func-foreach-target.sh"
 
+function filter_target {
+    [ -d "$1" ]
+}
+
 function archive_target {
     cmd=$1
     suffix=$2  # e.g. ".7z"
@@ -37,5 +41,5 @@ function archive_target {
 }
 
 function archive {
-    foreach_target "Archive Preview" "Archive these directories?" archive_target "$@"
+    foreach_target filter_target "Archive Preview" "Archive these directories?" archive_target "$@"
 }

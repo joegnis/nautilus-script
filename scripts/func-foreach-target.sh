@@ -7,6 +7,7 @@ function cgi_escape {
 }
 
 function foreach_target {
+    filter_func=$1; shift
     preview_title=$1; shift
     preview_text=$1; shift  # e.g. ".7z"
 
@@ -15,7 +16,7 @@ function foreach_target {
     declare -a targets_full  # full path to targets
     for target in "${BASH_ARGV[@]}"; do
         target_full="$(realpath "$target")"
-        if [ -d "$target_full" ]; then
+        if $filter_func "$target_full"; then
             targets+=("$target")
             targets_escaped+=("$( cgi_escape "$target")")
             targets_full+=("$target_full")
