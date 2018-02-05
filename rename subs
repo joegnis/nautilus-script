@@ -1,0 +1,29 @@
+#!/bin/bash
+# Create one or more directories that have the same name as the nodes selected
+# Skip one extension at the end of the name
+function join_by { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
+
+current_directory="$(readlink -f .)"
+
+declare -a targets_full
+declare -a targets_basename
+for target in "$@"; do
+    target_full="$(readlink -f "$target")"
+    targets_basename+=("${target%.*}")
+    targets_full+=("$target_full")
+done
+
+
+if [ ${#targets_full[@]} -eq 0 ]; then
+    zenity --info \
+        --text "Nothing is selected"
+    exit 0
+fi
+
+zenity --question \
+    --title "Mkdir Preview" \
+    --text "Create these directories?\n\n$(join_by $'\n' "${targets_basename[@]}")"
+
+if [ "$?" -ne 0 ]; then
+    exit 0
+fi

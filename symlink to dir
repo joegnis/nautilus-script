@@ -1,0 +1,51 @@
+#!/bin/bash
+function join_by { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
+
+declare -a targets_full
+declare -a targets_basename
+for target in "$@"; do
+    targets_basename+=("$target")
+    targets_full+=("$(readlink -f "$target")")
+done
+
+directory=$(zenity --file-selection \
+    --title "Select a directory to symlink to" \
+    --filename="$(dirname "${targets_full[0]}")" \
+    --directory)
+
+case $? in
+    0)
+        directory_full="$(readlink -f "$directory")"
+        directory_basename="$(basename "$directory_full")"
+
+        zenity --question \
+            --title "Symlink Preview" \
+            --text "Create symlink to the following file(s) in '$directory_basename'?\n\n$(join_by $'\n' "${targets_basename[@]}")"
+
+        if [ "$?" -ne 0 ]; then
+            exit 0
+        fi
+
+        for target_basename in "${targets_basename[@]}"; do
+
+            link_name="$target_basename"
+            if [ -e "$directory_full/$link_name" ]; then
+                link_name="Link to $link_name"
+            fi
+            count=1
+            while [ -e "$directory_full/$link_name" ]; do
+                link_name="$link_name $count"
+                count=$(( count + 1 ))
+            done
+
+            ln -s "$(readlink -f "$target_basename")" "$directory_full/$link_name"
+        done
+        ;;
+    1)
+        zenity --warning \
+            --text="No file selected."
+        ;;
+    -1)
+        zenity --error \
+            --text="An unexpected error has occurred.";;
+esac

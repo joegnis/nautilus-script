@@ -1,0 +1,29 @@
+#!/bin/bash
+function join_by { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
+
+declare -a actions
+for file in "$@"; do
+    file_basename=$(basename -- "$file")
+    action="$file_basename: "
+    IFS=$'\n' read -r -d '' -a outarr_conv < \
+        <(printf '%s\0' "$(convmv -f gbk -t utf8 --parsable "$file")")
+    if [ ${#outarr_conv[@]} -eq 0 ]; then
+        action="${action}Nothing to change."
+    elif [ "${outarr_conv[0]}" = 'rename' ]; then
+        action="Rename to \"$(basename "${outarr_conv[2]}")\""
+    else
+        action="${action}$(join_by ';' "${out_arr[@]}")"
+    fi
+    actions+=("$action")
+done
+
+zenity --question \
+    --title "Rename Preview" \
+    --text "Confirm the change(s)?\n\n$(join_by $'\n' "${actions[@]}")"
+
+if [ "$?" -ne 0 ]; then
+    exit 0
+fi
+
+# convmv without test
+convmv -f gbk -t utf8 --notest -- "$@"
