@@ -2,6 +2,12 @@
 
 My personal Nautilus scripts.
 
+## Requirement
+
+Tested on Ubuntu 17.10, Bash 4.4
+
+nameref is used, so Bash >= 4.3 is required.
+
 ## Install
 
 Via SCons
