@@ -1,4 +1,4 @@
 #!/bin/bash
 dir_script="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$dir_script/func-archive.sh"
-archive "zip" ".zip"
+archive "zip" ".zip" "$@"
