@@ -2,21 +2,21 @@
 # Unarchive function
 # Usage: unarchive (No arguments)
 dir_script="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-source "$dir_script/func-foreach-target.sh"
+source "$dir_script/func-foreach-entry.sh"
 
-function filter_target {
+function filter_entry {
     [ -f "$1" ]
 }
 
-function unarchive_target {
+function unarchive_entry {
     # Test if encrypted
     encrypted=false
-    num_encrypted=$( 7z l -slt -- "$TARGET" | grep -i -c "Encrypted = +" )
+    num_encrypted=$( 7z l -slt -- "$ENTRY" | grep -i -c "Encrypted = +" )
     if [ "$num_encrypted" -gt 0 ]; then
         encrypted=true
     fi
     if [ "$encrypted" = true ]; then
-        entry="$(zenity --title "$TARGET_ESCAPED" --password)"
+        entry="$(zenity --title "$ENTRY_ESCAPED" --password)"
         case $? in
             0)
                 password="$(echo "$entry" | cut -d'|' -f2)"
@@ -29,24 +29,12 @@ function unarchive_target {
         esac
     fi
 
-    dir_name="${TARGET%.*}"
-    7z x "$TARGET" -o"$dir_name" -p"$password" &
-    pid_task=$!
-
-    ( while [ -e /proc/$pid_task ]; do sleep 0.1; done
-      echo "# Unarchive"
-      echo 100 ) | {
-      zenity --progress \
-        --text="Unarchiving... (fake progress)" \
-        --title="Unarchiving $TARGET_ESCAPED" \
-        --percentage=$(( 20 + RANDOM % 41 )) || {
-            [ -e /proc/$pid_task ] && to_delete=1
-            kill $pid_task
-            [ "$to_delete" -eq 1 ] && rm -r "$dir_name"
-        }
-    } &
+    dir_name="${ENTRY%.*}"
+    7z x "$ENTRY" -o"$dir_name" -p"$password"
 }
 
 function unarchive {
-    foreach_target filter_target "Unarchive Preview" "Unarchive these directories?" unarchive_target
+    entries=("$@")
+    cmd=("unarchive_entry")
+    foreach_entry entries cmd filter_entry "Unarchive Preview" "Unarchive these directories?"
 }

@@ -61,7 +61,7 @@ function foreach_entry {
 
     if [ "${#entries_full[@]}" -eq 0 ]; then
         zenity --info \
-            --text "No directories selected"
+            --text "No required entries selected"
         exit 0
     fi
 
