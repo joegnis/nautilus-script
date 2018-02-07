@@ -1,0 +1,7 @@
+#!/bin/bash
+# Unarchive selected archives and convmv the entries from GBK to UTF8
+# Usage: unarchive path
+dir_script="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source "$dir_script/func-unarchive-and-convmv.sh"
+
+unarchive_and_convmv "$@"

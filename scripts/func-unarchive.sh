@@ -1,6 +1,6 @@
 #!/bin/bash
 # Unarchive function
-# Usage: unarchive (No arguments)
+# Usage: unarchive entry1 entry2 ...
 dir_script="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source "$dir_script/func-foreach-entry.sh"
 
@@ -8,6 +8,19 @@ function filter_entry {
     [ -f "$1" ]
 }
 
+##############################################################################
+# Unarchive a file, prompt for password if file is encrypted
+# Globals:
+#   ENTRY
+#   ENTRY_FULL
+#   ENTRY_ESCAPED
+# Arguments:
+#   None
+# Returns:
+#   None
+# Stdout:
+#   Target directory, if 7z is executed
+##############################################################################
 function unarchive_entry {
     # Test if encrypted
     encrypted=false
@@ -30,7 +43,9 @@ function unarchive_entry {
     fi
 
     dir_name="${ENTRY%.*}"
-    7z x "$ENTRY" -o"$dir_name" -p"$password"
+    echo "$dir_name"
+    # Silence output to "return" dir_name
+    7z x "$ENTRY" -o"$dir_name" -p"$password" >& /dev/null
 }
 
 function unarchive {
