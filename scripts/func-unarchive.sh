@@ -36,7 +36,7 @@ function unarchive_entry {
                 ;;
             1)
                 return ;;
-            -1)
+            255)
                 ERROR=An unexpected error has occurred.
                 return 1 ;;
         esac

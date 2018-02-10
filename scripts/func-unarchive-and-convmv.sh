@@ -31,7 +31,10 @@ function convmv_filename {
 function unarchive_and_convmv_entry {
     export LC_ALL=C
     dir_name="$(unarchive_entry)"
+    exit_code="$?"
     export LC_ALL=
+    [ "$exit_code" -ne 0 ] && return $exit_code
+
     # Sort all entries by depth descendingly
     find "$dir_name" ! -path "$dir_name" -printf "%d %p\n" | \
         sort -nr | sed -r 's#^[0-9]+\s##' | \
