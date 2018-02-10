@@ -15,13 +15,19 @@ function filter_entry {
 #   ENTRY_FULL
 #   ENTRY_ESCAPED
 # Arguments:
-#   None
+#   1: if set to true, set LC_ALL=C when unarchiving
 # Returns:
 #   None
 # Stdout:
 #   Target directory, if 7z is executed
 ##############################################################################
 function unarchive_entry {
+    lc_all="$LC_ALL"
+    shopt -s nocasematch
+    if [ "$#" -gt 0 ] && [[ $1 = true ]]; then
+        lc_all=C; shift
+    fi
+    shopt -u nocasematch
     # Test if encrypted
     encrypted=false
     num_encrypted=$( 7z l -slt -- "$ENTRY" | grep -i -c "Encrypted = +" )
@@ -45,7 +51,7 @@ function unarchive_entry {
     dir_name="${ENTRY%.*}"
     echo "$dir_name"
     # Silence output to "return" dir_name
-    7z x "$ENTRY" -o"$dir_name" -p"$password" >& /dev/null
+    LC_ALL="$lc_all" 7z x "$ENTRY" -o"$dir_name" -p"$password" >& /dev/null
 }
 
 function unarchive {
