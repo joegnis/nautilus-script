@@ -1,0 +1,89 @@
+#!/bin/bash
+# Archive function used by scripts: "archive *"
+#   which archives all the files in each selected directory into a file of
+#   the name of the corresponding directory
+# Usage: archive "cmd" ".suffix"
+dir_script="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source "$dir_script/func-foreach-entry.sh"
+
+function _filter_entry {
+    [ -d "$1" ]
+}
+
+##############################################################################
+# Archive a directory into a file with the same name as the directory.
+# Called by function foreach_entry
+# Globals:
+#   ENTRY
+#   ENTRY_ESCAPED
+#   ENTRY_FULL
+# Arguments:
+#   1: a string containing the command to archive
+#       without following arguments at the end:
+#       "archive.suffix file_to_archive..."
+#   2: archive suffix
+# Returns:
+#   None
+##############################################################################
+function _archive_directory {
+    cmd=$1
+    suffix=$2  # e.g. ".7z"
+    current_directory="$(pwd)"
+
+    archive_name="$ENTRY$suffix"
+    count=1
+    while [ -e "$current_directory/$archive_name" ]; do
+        archive_name="${ENTRY}_$count$suffix"
+        count=$(( count + 1 ))
+    done
+
+    cd "$ENTRY_FULL"
+    $cmd "$current_directory/$archive_name" -- *
+}
+
+##############################################################################
+# Archive directory(s), prompting for format. Call this function directly.
+# Arguments:
+#   @: selected entries
+# Returns:
+#   None
+##############################################################################
+function archive {
+    entries=("$@")
+
+    if ! format="$(zenity --entry \
+        --title="Archive" \
+        --text="Enter archive format\ne.g. zip, 7z, tar.gz" \
+        --entry-text "zip")"
+    then
+        return 0
+    fi
+
+    shopt -s nocasematch
+    case "$format" in
+        7z)
+            archive_suffix=".7z"
+            archive_cmd="7z a"
+            ;;
+        zip)
+            archive_suffix=".zip"
+            archive_cmd="zip"
+            ;;
+        tar.gz)
+            archive_suffix=".tar.gz"
+            archive_cmd="tar -czpf"
+            ;;
+        *)
+            escaped="$( cgi_escape "$format")"
+            zenity --error \
+                --text="Unknown format: $escaped"
+            return 1
+            ;;
+    esac
+    shopt -u nocasematch
+    cmd=("_archive_directory" "$archive_cmd" "$archive_suffix")
+    foreach_entry entries cmd _filter_entry \
+        "Archive Preview" "Archive these directories to $archive_suffix files?"
+}
+
+archive "$@"
