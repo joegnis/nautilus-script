@@ -30,6 +30,12 @@ If installed to a custom location, add option `--install-dir`.
 
 Right click any file/directory in GNOME Files.
 
+## Known Issues
+
+- function "unarchive": can't unarchive and convmv SMB share files
+  with invalid encoding filenames.
+  Workaround: copy to local, unarchive, and copy back
+
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
