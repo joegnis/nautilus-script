@@ -9,6 +9,23 @@ function filter_entry {
 }
 
 ##############################################################################
+# Test if a file has the extension .tar.gz, .tar.xz, or .tar.bz2
+# Arguments:
+#   1: the file
+# Returns:
+#   None
+##############################################################################
+function is_tar_xx {
+    result=1
+    for ext in {.tar.gz,.tar.xz,.tar.bz2}; do
+        output="$(basename "$1" $ext)"
+        ! [ "$output" = "$1" ] || [ $result = 0 ]
+        result=$?
+    done
+    [ $result = 0 ]
+}
+
+##############################################################################
 # Unarchive a file, prompt for password if file is encrypted
 # Globals:
 #   ENTRY
@@ -48,10 +65,21 @@ function unarchive_entry {
         esac
     fi
 
-    dir_name="${ENTRY%.*}"
-    echo "$dir_name"
-    # Silence output to "return" dir_name
-    LC_ALL="$lc_all" 7z x "$ENTRY" -o"$dir_name" -p"$password" >& /dev/null
+    if is_tar_xx "$ENTRY"; then
+        # Use 7z twice to unarchive
+        dir_name="${ENTRY%%.*}"
+        # Silence output to "return" dir_name
+        7z x "$ENTRY" -o"$dir_name" -p"$password" >& /dev/null
+        # TODO: Can't handle encrypted archives
+        second_archive="${ENTRY%.*}"
+        7z x "$dir_name/$second_archive" -o"$dir_name" >& /dev/null
+        rm "$dir_name/$second_archive"
+        echo "$dir_name"
+    else
+        dir_name="${ENTRY%.*}"
+        LC_ALL="$lc_all" 7z x "$ENTRY" -o"$dir_name" -p"$password" >& /dev/null
+        echo "$dir_name"
+    fi
 }
 
 function unarchive {
