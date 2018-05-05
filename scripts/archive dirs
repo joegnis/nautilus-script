@@ -67,7 +67,7 @@ function archive {
             ;;
         zip)
             archive_suffix=".zip"
-            archive_cmd="zip"
+            archive_cmd="zip -r"
             ;;
         tar.gz)
             archive_suffix=".tar.gz"
