@@ -1,14 +1,20 @@
 #!/usr/bin/env bash_unit
 source ../scripts/func-unarchive.sh
 
-function test_func_is_tar_xx {
-    assert "is_tar_xx abc.tar.gz"
-    assert "is_tar_xx abc.tar.xz"
-    assert "is_tar_xx abc.tar.bz2"
-    assert_fail "is_tar_xx abc.tar"
-    assert_fail "is_tar_xx abc"
-    assert_fail "is_tar_xx a.b.c"
-    assert_fail "is_tar_xx abc.tar.xx"
-}
+function test_strip_off_tar_xx {
+    assert_equals "$(strip_off_tar_xx abc.tar.gz)" abc
+    assert_equals "$(strip_off_tar_xx abc.tgz)" abc
+    assert_equals "$(strip_off_tar_xx abc.tar.xz)" abc
+    assert_equals "$(strip_off_tar_xx abc.txz)" abc
+    assert_equals "$(strip_off_tar_xx abc.tar.bz2)" abc
+    assert_equals "$(strip_off_tar_xx abc.tb2)" abc
+    assert_equals "$(strip_off_tar_xx abc.tbz2)" abc
+    assert_equals "$(strip_off_tar_xx abc.tar.lz)" abc
+    assert_equals "$(strip_off_tar_xx abc.tar.lzma)" abc
+    assert_equals "$(strip_off_tar_xx abc.tlz)" abc
+    assert_equals "$(strip_off_tar_xx abc.tar.Z)" abc
+    assert_equals "$(strip_off_tar_xx abc.tZ)" abc
 
+    assert_equals "$(strip_off_tar_xx abc.0.1.0.tar.gz)" abc.0.1.0
+}
 # vi: ft=sh

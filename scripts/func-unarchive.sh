@@ -9,20 +9,31 @@ function filter_entry {
 }
 
 ##############################################################################
-# Test if a file has the extension .tar.gz, .tar.xz, or .tar.bz2
+# Remove the extension from a filename if it's one of:
+#   .tar.gz, .tgz,
+#   .tar.xz, .txz,
+#   .tar.bz2, .tb2, .tbz, tbz2,
+#   .tar.lz,
+#   .tar.lzma, .tlz,
+#   .tar.Z, .tZ
+# And return the stripped filename. If not, return the original filename.
 # Arguments:
-#   1: the file
-# Returns:
-#   None
+#   1: filename
+# Stdout:
+#   filename
 ##############################################################################
-function is_tar_xx {
-    result=1
-    for ext in {.tar.gz,.tar.xz,.tar.bz2}; do
-        output="$(basename "$1" $ext)"
-        ! [ "$output" = "$1" ] || [ $result = 0 ]
-        result=$?
+function strip_off_tar_xx {
+    extensions=(.tar.gz .tgz)
+    extensions+=(.tar.xz .txz)
+    extensions+=(.tar.bz2 .tb2 .tbz2)
+    extensions+=(.tar.lz)
+    extensions+=(.tar.lzma .tlz)
+    extensions+=(.tar.Z .tZ)
+    for ext in "${extensions[@]}"; do
+        output="$(basename "$1" "$ext")"
+        ! [ "$output" = "$1" ] && break
     done
-    [ $result = 0 ]
+    echo "$output"
 }
 
 ##############################################################################
@@ -65,13 +76,14 @@ function unarchive_entry {
         esac
     fi
 
-    if is_tar_xx "$ENTRY"; then
-        # Use 7z twice to unarchive
-        dir_name="${ENTRY%%.*}"
+    basename_entry="$(strip_off_tar_xx "$ENTRY")"
+    if [ "$basename_entry" != "$ENTRY" ]; then
+        # Use 7z twice to unarchive .tar.xx files
+        dir_name="$basename_entry"
         # Silence output to "return" dir_name
         7z x "$ENTRY" -o"$dir_name" -p"$password" >& /dev/null
         # TODO: Can't handle encrypted archives
-        second_archive="${ENTRY%.*}"
+        second_archive="$basename_entry.tar"
         7z x "$dir_name/$second_archive" -o"$dir_name" >& /dev/null
         rm "$dir_name/$second_archive"
         echo "$dir_name"
